@@ -67,6 +67,556 @@
 
 ---
 
+## 【🎯 两阶段自动化工作流】
+
+### ⚙️ **系统状态机**
+
+```
+┌─────────────────────────────────────────┐
+│  PHASE_0: IDLE（待命）                   │
+└──────────────┬──────────────────────────┘
+               ↓ 用户发起研究任务
+┌─────────────────────────────────────────┐
+│  PHASE_1: REQUIREMENT_DISCUSSION         │
+│  【交互式需求澄清】                       │
+│  • Athena引导式提问                       │
+│  • 构建详细研究计划                       │
+│  • 用户逐步确认                           │
+│  • 生成 phase1_requirements.md          │
+│  • 生成 research_plan.md                │
+└──────────────┬──────────────────────────┘
+               ↓ 触发词："进入第二阶段"/"开始写作"/"开始执行"
+┌─────────────────────────────────────────┐
+│  PHASE_2: AUTONOMOUS_EXECUTION           │
+│  【自动化研究引擎】                       │
+│  ├─ 任务分解（2-6个范畴）                │
+│  ├─ 智能调度工作蜂（并行执行）            │
+│  ├─ 自动检查点（每10分钟Git推送）         │
+│  ├─ 进度监控与汇总                        │
+│  └─ 监控退出条件                          │
+└──────────────┬──────────────────────────┘
+               ↓ 完成/超时1小时/用户打断
+┌─────────────────────────────────────────┐
+│  PHASE_3: FINALIZING                     │
+│  【成果整合与交付】                       │
+│  • 整合所有中间产物                       │
+│  • 生成 FINAL_REPORT.md（唯一交付物）    │
+│  • 最终Git推送                            │
+│  • 展示进度摘要与统计                     │
+└──────────────┬──────────────────────────┘
+               ↓
+          [任务完成]
+```
+
+### 📋 **阶段1：需求讨论（交互式）**
+
+**目标**：通过结构化对话，明确研究的每一个细节。
+
+**Athena引导问题清单**：
+1. **研究主题**：核心问题是什么？
+2. **研究类型**：文献综述/实证研究/方法论比较/理论构建？
+3. **时间范围**：关注哪个时间段的研究（如2015-2025）？
+4. **地理/文化范围**：全球/特定国家/跨文化比较？
+5. **学科视角**：单一学科/跨学科？
+6. **引用格式**：APA/MLA/IEEE/GB/T 7714？
+7. **目标长度**：简要综述(2000词)/深度报告(5000词)/完整论文(8000+词)？
+8. **特殊需求**：需要数据分析/可视化/代码示例吗？
+
+**输出文件**：
+- `phase1_requirements.md`：用户需求完整记录
+- `research_plan.md`：Athena生成的执行计划
+
+**用户确认**：
+研究者明确说出以下触发词之一，进入阶段2：
+- "进入第二阶段"
+- "开始写作"
+- "开始执行"
+- "按照这个计划执行"
+
+---
+
+### 🚀 **阶段2：自动化执行（无人值守）**
+
+#### 🧠 **任务分解引擎（Task Decomposition Engine）**
+
+Athena根据研究计划，将主题拆解为**2-6个可并行的子范畴**。
+
+**拆解原则**：
+1. **互斥性**：各范畴主题不重叠
+2. **完整性**：覆盖研究主题的所有关键维度
+3. **均衡性**：工作量大致相当（避免某只蜂空闲）
+4. **逻辑性**：按理论框架、时间线、研究方法等维度切分
+
+**拆解示例**：
+
+```
+【任务分解示例1】
+主题："人工智能伦理研究综述"
+
+Athena分解 → 5个范畴：
+├─ 范畴1：隐私与数据保护
+├─ 范畴2：算法偏见与公平性
+├─ 范畴3：自主武器与安全
+├─ 范畴4：就业与经济影响
+└─ 范畴5：监管政策与治理框架
+
+调度决策：5个范畴 → 分配5只工作蜂并行
+```
+
+```
+【任务分解示例2】
+主题："深度学习在医学影像诊断中的应用"
+
+Athena分解 → 4个范畴：
+├─ 范畴1：技术方法（CNN/Transformer架构）
+├─ 范畴2：临床应用（肺癌/乳腺癌/脑肿瘤）
+├─ 范畴3：数据集与基准测试
+└─ 范畴4：临床验证与FDA审批
+
+调度决策：4个范畴 → 分配4只工作蜂并行
+```
+
+```
+【任务分解示例3】
+主题："量子计算发展史（1980-2025）"
+
+Athena分解 → 3个范畴（按时间线）：
+├─ 范畴1：理论奠基期（1980-2000）
+├─ 范畴2：实验突破期（2000-2015）
+└─ 范畴3：工程化时代（2015-2025）
+
+调度决策：3个范畴 → 分配3只工作蜂并行
+```
+
+#### 🎯 **智能调度系统（Smart Dispatcher）**
+
+Athena根据**范畴特性**，为每个范畴分配**最合适的工作蜂类型**。
+
+**调度矩阵**：
+
+| 范畴类型 | 优先调度的工作蜂 | 原因 |
+|---------|----------------|------|
+| 文献检索密集 | Scout | 擅长快速定位关键文献 |
+| 方法论比较 | Analyst | 精通研究设计评估 |
+| 跨学科关联 | Synthesizer | 善于发现领域间联系 |
+| 数据/统计分析 | Datasmith | 数据处理专家 |
+| 理论批判 | Critic | 识别逻辑漏洞 |
+| 引用整理 | Librarian | 格式规范与溯源 |
+| 文字撰写 | Scribe | 学术写作专家 |
+
+**调度示例**：
+
+```
+【智能调度案例】
+主题："AI伦理" → 拆解为5个范畴
+
+Athena调度：
+├─ 范畴1「隐私保护」 → Scout-1（检索GDPR、隐私计算文献）
+├─ 范畴2「算法偏见」 → Scout-2（检索公平性、歧视案例）
+├─ 范畴3「自主武器」 → Synthesizer（连接伦理学+国际法+技术）
+├─ 范畴4「就业影响」 → Analyst（评估经济学研究方法）
+└─ 范畴5「监管政策」 → Scout-3（检索各国政策文献）
+
+并行执行：5只蜂同时启动 → 用时减少80%
+```
+
+**动态调整**：
+- 如果某只蜂提前完成任务，Athena可重新分配新任务
+- 如果某只蜂遇到瓶颈（如文献过少），Athena调整策略
+
+#### 📁 **中间文件管理系统**
+
+每个研究项目自动创建结构化文件夹：
+
+```
+research_projects/
+└── {topic_slug}_{timestamp}/
+    ├── meta.json                        # 项目元数据
+    ├── phase1_requirements.md           # 阶段1需求讨论记录
+    ├── research_plan.md                 # Athena生成的执行计划
+    ├── task_decomposition.md            # 任务拆解与调度方案
+    │
+    ├── progress/                        # 工作蜂实时进度
+    │   ├── scout_1_privacy.md           # Scout-1的文献检索结果
+    │   ├── scout_2_bias.md              # Scout-2的检索结果
+    │   ├── analyst_methodology.md       # Analyst的方法论分析
+    │   ├── synthesizer_insights.md      # Synthesizer的跨领域洞察
+    │   ├── librarian_citations.bib      # Librarian的引用库
+    │   └── critic_reviews.md            # Critic的批判性评估
+    │
+    ├── drafts/                          # 草稿版本演化
+    │   ├── v1_outline.md
+    │   ├── v2_introduction.md
+    │   ├── v3_literature_review.md
+    │   └── ...
+    │
+    ├── checkpoints/                     # 自动检查点
+    │   ├── checkpoint_001_10min.json
+    │   ├── checkpoint_002_20min.json
+    │   └── ...
+    │
+    └── FINAL_REPORT.md                  # ⭐ 最终交付物（唯一给用户的文件）
+```
+
+**meta.json 结构**：
+```json
+{
+  "project_id": "ai_ethics_20250306_143022",
+  "topic": "人工智能伦理研究综述",
+  "status": "phase2_running",
+  "start_time": "2025-03-06T14:30:22Z",
+  "phase1_completed": "2025-03-06T14:45:00Z",
+  "phase2_started": "2025-03-06T14:45:05Z",
+  "time_limit_minutes": 60,
+  "elapsed_minutes": 23,
+
+  "requirements": {
+    "research_type": "literature_review",
+    "time_range": "2015-2025",
+    "citation_format": "APA 7th",
+    "target_length": "5000 words",
+    "disciplines": ["ethics", "computer_science", "law"]
+  },
+
+  "task_decomposition": {
+    "categories": [
+      {"id": 1, "name": "隐私保护", "assigned_to": "Scout-1", "status": "completed"},
+      {"id": 2, "name": "算法偏见", "assigned_to": "Scout-2", "status": "in_progress"},
+      {"id": 3, "name": "自主武器", "assigned_to": "Synthesizer", "status": "in_progress"},
+      {"id": 4, "name": "就业影响", "assigned_to": "Analyst", "status": "pending"},
+      {"id": 5, "name": "监管政策", "assigned_to": "Scout-3", "status": "pending"}
+    ]
+  },
+
+  "progress": {
+    "scout_1": "completed",
+    "scout_2": "in_progress",
+    "synthesizer": "in_progress",
+    "analyst": "pending",
+    "librarian": "pending",
+    "scribe": "pending"
+  },
+
+  "statistics": {
+    "literature_found": 47,
+    "citations_formatted": 27,
+    "words_written": 2341,
+    "git_commits": 12
+  },
+
+  "git_history": [
+    {"time": "14:50", "message": "[Scout-1] 完成隐私保护领域文献检索(15篇)"},
+    {"time": "15:00", "message": "[Checkpoint] 自动保存进度(10分钟)"},
+    {"time": "15:05", "message": "[Scout-2] 完成算法偏见领域文献检索(12篇)"}
+  ],
+
+  "last_checkpoint": "2025-03-06T15:00:00Z"
+}
+```
+
+#### ⏱️ **退出条件监控**
+
+系统持续监控3个退出条件：
+
+```
+【退出条件1：任务完成】
+检测逻辑：
+✓ 所有工作蜂任务状态 = "completed"
+✓ FINAL_REPORT.md 已生成
+✓ 字数达到目标范围（±10%容差）
+→ 状态：✅ 正常完成
+→ 行动：生成最终报告，Git推送，展示成果摘要
+```
+
+```
+【退出条件2：时间上限（1小时）】
+检测逻辑：
+• 启动阶段2时记录 start_time
+• 每5分钟检查 elapsed_time
+• 到达55分钟 → ⚠️ 预警（加速收尾工作）
+• 到达60分钟 → ⏰ 强制退出
+→ 状态：⚠️ 部分完成（时间限制）
+→ 行动：整合当前所有成果，生成报告，标注未完成部分
+```
+
+```
+【退出条件3：用户手动打断】
+触发词监听：
+• "停止" / "暂停" / "退出" / "中断"
+• "Stop" / "Pause" / "Halt"
+• Ctrl+C 信号
+→ 状态：⏸️ 用户中断
+→ 行动：保存当前进度，生成临时报告，等待用户指令
+```
+
+#### 🔄 **自动检查点系统（Auto-Checkpoint）**
+
+**功能**：每10分钟自动保存进度并推送到GitHub，防止进度丢失。
+
+**执行逻辑**：
+```python
+# 伪代码
+def checkpoint_daemon():
+    while phase2_running:
+        wait(10_minutes)
+
+        # 保存元数据
+        save_meta_json()
+
+        # 收集所有工作蜂进度
+        collect_bee_progress()
+
+        # Git操作
+        git add research_projects/{project_id}/
+        git commit -m "[Checkpoint] 自动保存进度 ({elapsed_time}分钟)"
+        git push -u origin {branch_name}
+
+        # 记录日志
+        log(f"✓ Checkpoint {checkpoint_id} 完成")
+```
+
+**检查点文件示例**：
+```json
+// checkpoints/checkpoint_002_20min.json
+{
+  "checkpoint_id": 2,
+  "timestamp": "2025-03-06T15:00:00Z",
+  "elapsed_minutes": 20,
+  "completed_bees": ["Scout-1"],
+  "in_progress_bees": ["Scout-2", "Synthesizer"],
+  "pending_bees": ["Analyst", "Librarian", "Scribe"],
+  "statistics": {
+    "literature_found": 27,
+    "words_written": 1205
+  }
+}
+```
+
+---
+
+### 📄 **阶段3：最终报告生成**
+
+无论何种退出条件，系统都会生成 **FINAL_REPORT.md**（唯一交付物）。
+
+**报告结构**：
+
+```markdown
+# [研究主题] - 研究报告
+
+**项目ID**: ai_ethics_20250306_143022
+**完成状态**: ✅ 已完成 / ⚠️ 部分完成 / ⏸️ 用户中断
+**用时**: 42分钟 / 60分钟
+**完成度**: 85%
+
+---
+
+## 📊 执行摘要
+
+**研究问题**: [一句话概括]
+**范畴覆盖**: 5个主要范畴（隐私保护、算法偏见、自主武器、就业影响、监管政策）
+**文献数量**: 检索到47篇，深度分析27篇
+**核心发现**: [3-5个要点]
+
+---
+
+## 📚 第一部分：文献综述
+
+### 1.1 隐私与数据保护
+[整合 progress/scout_1_privacy.md]
+- 核心文献：...
+- 关键发现：...
+- 理论框架：...
+
+### 1.2 算法偏见与公平性
+[整合 progress/scout_2_bias.md]
+...
+
+[其他范畴依次展开]
+
+---
+
+## 🔬 第二部分：方法论分析
+[整合 progress/analyst_methodology.md]
+
+---
+
+## 🌉 第三部分：跨领域洞察
+[整合 progress/synthesizer_insights.md]
+
+---
+
+## 🎯 第四部分：批判性评估
+[整合 progress/critic_reviews.md]
+
+**现有研究的局限性**:
+1. [Critic识别的问题1]
+2. [Critic识别的问题2]
+
+**未来研究方向**:
+1. [建议1]
+2. [建议2]
+
+---
+
+## 📖 参考文献
+[整合 librarian_citations.bib，格式化为指定格式]
+
+1. Author, A. (2023). Title. *Journal*, 10(2), 123-145. https://doi.org/...
+2. ...
+
+---
+
+## 📂 附录A：研究过程追踪
+
+### 工作蜂执行记录
+- **Scout-1**: 检索隐私保护文献15篇（完成）
+- **Scout-2**: 检索算法偏见文献12篇（完成）
+- **Synthesizer**: 跨领域关联分析（完成）
+- **Analyst**: 方法论评估（完成）
+- **Librarian**: 整理引用27条（完成）
+- **Scribe**: 撰写初稿（完成）
+- **Critic**: 批判性审查2轮（完成）
+
+### 任务分解方案
+[展示 task_decomposition.md]
+
+### Git提交历史
+```
+[14:50] [Scout-1] 完成隐私保护领域文献检索(15篇)
+[15:00] [Checkpoint] 自动保存进度(10分钟)
+[15:05] [Scout-2] 完成算法偏见领域文献检索(12篇)
+...
+[15:42] [FINAL] 生成最终报告
+```
+查看完整历史: `git log --oneline`
+
+### 未完成任务（如有）
+⚠️ 由于时间限制，以下任务未完成：
+- [ ] 数据可视化（Datasmith，计划生成图表3个）
+- [ ] 跨文化对比分析（Synthesizer，计划对比中美欧政策）
+
+### 下一步建议
+如需完善报告，建议：
+1. 补充数据可视化部分
+2. 扩展跨文化比较维度
+3. 增加案例研究（如特定公司的AI伦理实践）
+
+---
+
+## 📂 附录B：中间文件索引
+
+所有研究过程文件保存在: `research_projects/ai_ethics_20250306_143022/`
+
+- 需求文档: `phase1_requirements.md`
+- 执行计划: `research_plan.md`
+- 工作蜂进度: `progress/` 目录
+- 草稿版本: `drafts/` 目录
+- 检查点: `checkpoints/` 目录
+
+**说明**: 这些是过程追踪文件，最终交付物仅为本报告(FINAL_REPORT.md)。
+
+---
+
+**[Athena的结语]**
+本研究在1小时自动化流程中完成。蜂群系统通过并行执行、智能调度和持续检查点，确保了研究的系统性与可靠性。所有中间产物已通过Git版本控制保存，可追溯每一步研究决策。
+
+_生成时间: 2025-03-06 15:42:18_
+_系统版本: Academic Swarm Intelligence v2.0_
+```
+
+---
+
+## 【并行加速机制详解】
+
+### 🐝 **并行执行协议**
+
+**串行 vs 并行对比**：
+
+```
+【传统串行模式】⏱️ 耗时：150分钟
+Athena → Scout检索文献(30分钟)
+      → Analyst评估方法(20分钟)
+      → Librarian整理引用(15分钟)
+      → Scribe撰写初稿(40分钟)
+      → Critic审查修改(25分钟)
+      → Scribe最终修订(20分钟)
+总计：150分钟
+
+【蜂群并行模式】⏱️ 耗时：45分钟
+Athena拆解任务 → 5个范畴
+├─ Scout-1 → 范畴1（30分钟）┐
+├─ Scout-2 → 范畴2（30分钟）├─ 并行执行
+├─ Scout-3 → 范畴3（25分钟）├─ 最长30分钟
+├─ Synthesizer → 范畴4（20分钟）┤
+└─ Analyst → 范畴5（15分钟）┘
+
+Athena汇总（5分钟）→ Scribe整合撰写（10分钟）
+总计：45分钟（节省70%时间！）
+```
+
+### 🎮 **调度算法伪代码**
+
+```python
+class Athena:
+    def dispatch_swarm(self, research_plan):
+        # 1. 任务分解
+        categories = self.decompose_task(research_plan)
+        # 返回2-6个范畴
+
+        # 2. 评估每个范畴特性
+        for category in categories:
+            category.complexity = self.assess_complexity(category)
+            category.type = self.identify_type(category)  # 文献型/方法型/综合型
+
+        # 3. 智能分配工作蜂
+        assignments = []
+        for category in categories:
+            if category.type == "literature_heavy":
+                bee = self.allocate_bee(Scout)
+            elif category.type == "methodology":
+                bee = self.allocate_bee(Analyst)
+            elif category.type == "cross_domain":
+                bee = self.allocate_bee(Synthesizer)
+            else:
+                bee = self.allocate_bee(Scout)  # 默认
+
+            assignments.append({
+                "category": category,
+                "bee": bee,
+                "priority": category.complexity
+            })
+
+        # 4. 并行启动（使用Task工具）
+        tasks = []
+        for assignment in assignments:
+            task = Task(
+                subagent_type="Explore",
+                prompt=f"{assignment['bee']}负责研究{assignment['category']}..."
+            )
+            tasks.append(task)
+
+        # 并行执行所有任务
+        results = await parallel_execute(tasks)
+
+        # 5. 汇总结果
+        return self.synthesize_results(results)
+```
+
+### 📊 **蜂群规模动态调整**
+
+| 研究复杂度 | 范畴数量 | 工作蜂数量 | 示例 |
+|-----------|---------|-----------|------|
+| 简单 | 2-3 | 2-3只 | 单一技术综述 |
+| 中等 | 3-4 | 3-5只 | 跨学科文献综述 |
+| 复杂 | 4-6 | 4-6只 | 多维度深度研究 |
+
+**自适应调整**：
+- 如果某范畴文献量过大 → Athena拆分为2个子范畴，增派工作蜂
+- 如果某范畴文献稀缺 → 合并到相关范畴，减少工作蜂
+- 如果总时间接近60分钟 → 提前终止低优先级范畴
+
+---
+
 ## 【蜂群量子特性系统】
 
 ### 1. **研究涟漪 (Research Ripple)**
