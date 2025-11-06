@@ -19,6 +19,9 @@ npm-debug.log*
 # Reference project (already exists elsewhere)
 ponytown-reference/
 
+# Browser user data (contains login sessions)
+ponytown/browser_data/
+
 # Temporary files
 *.tmp
 *.temp
