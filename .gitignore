@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+# Test files
+*.test.js
+
+# Screenshots
+*.png
+!ponytown/assets/*.png
+
+# Reference project (already exists elsewhere)
+ponytown-reference/
+
+# Browser user data (contains login sessions)
+ponytown/browser_data/
+
+# Temporary files
+*.tmp
+*.temp
